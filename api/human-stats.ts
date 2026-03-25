@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import { handleHumanStats } from '../server/humanStatsProxy'
+import { handleHumanStats } from '../server/humanStatsProxy.js'
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   const handled = await handleHumanStats(req, res)

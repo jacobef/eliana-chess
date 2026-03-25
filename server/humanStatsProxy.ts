@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import { lichessHumanBook } from './lichessHumanBook'
+import { lichessHumanBook } from './lichessHumanBook.js'
 
 export const HUMAN_STATS_PATH = '/api/human-stats'
 export const HUMAN_STATS_STATUS_PATH = '/api/human-stats/status'

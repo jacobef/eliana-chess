@@ -2,8 +2,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
-import { handleHumanStats } from './server/humanStatsProxy'
-import { handleOpenAIResponses } from './server/openaiResponsesProxy'
+import { handleHumanStats } from './server/humanStatsProxy.js'
+import { handleOpenAIResponses } from './server/openaiResponsesProxy.js'
 
 export const crossOriginHeaders = {
   'Cross-Origin-Opener-Policy': 'same-origin',
