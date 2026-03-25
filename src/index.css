@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(218, 179, 115, 0.2), transparent 24%),
+    radial-gradient(circle at 80% 10%, rgba(67, 125, 109, 0.18), transparent 22%),
+    linear-gradient(180deg, #f4eedf 0%, #efe6d2 48%, #ece0c5 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --ink: #17231d;
+  --ink-soft: #536459;
+  --panel: rgba(255, 251, 243, 0.82);
+  --border-strong: rgba(41, 58, 52, 0.14);
+  --shadow-soft: 0 1rem 2.5rem rgba(38, 47, 38, 0.1);
+  --accent: #c56a1b;
+  --danger: #a12b1c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(22, 35, 29, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 35, 29, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 85%);
+}
+
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+code {
+  font-family: var(--font-mono);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+p {
+  line-height: 1.55;
+}
+
+#root {
+  width: min(1380px, calc(100vw - 2rem));
+  margin: 0 auto;
+  padding: 1.35rem 0 2rem;
+}
+
+@media (max-width: 720px) {
+  #root {
+    width: min(100vw - 1rem, 100%);
+    padding-top: 0.75rem;
+  }
+}

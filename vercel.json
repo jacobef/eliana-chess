@@ -1,0 +1,27 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/human-stats.ts": {
+      "includeFiles": "server/generated/lichess-human-book-2013-01.json"
+    },
+    "api/human-stats/status.ts": {
+      "includeFiles": "server/generated/lichess-human-book-2013-01.json"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        }
+      ]
+    }
+  ]
+}
