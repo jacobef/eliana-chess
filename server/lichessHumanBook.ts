@@ -3,6 +3,7 @@ import { createReadStream } from 'node:fs'
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import readline from 'node:readline'
+import { fileURLToPath } from 'node:url'
 
 import { Chess } from 'chess.js'
 
@@ -13,6 +14,8 @@ export const HUMAN_BOOK_ARTIFACT_RELATIVE_PATH =
 const MIN_SAMPLE_GAMES = 100
 const MAX_INDEX_PLIES = 24
 const SCAN_PROGRESS_CAP = 94
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
+const projectRoot = path.resolve(moduleDirectory, '..')
 
 export type HumanBookLoadState = {
   status: 'idle' | 'loading' | 'ready' | 'error'
@@ -129,6 +132,15 @@ class LichessHumanBook {
     }
 
     try {
+      if (!(await sourceFileExists())) {
+        throw new Error(
+          [
+            'Human-book artifact not found in the deployed function bundle.',
+            `Checked: ${getBundledIndexPathCandidates().join(', ')}`,
+          ].join(' '),
+        )
+      }
+
       const builtIndex = await buildHumanBookIndex((state) => {
         this.setState(state)
       })
@@ -164,7 +176,14 @@ class LichessHumanBook {
       progress: 10,
     })
 
-    return await readIndexFile(getBundledIndexPath())
+    for (const candidate of getBundledIndexPathCandidates()) {
+      const bundled = await readIndexFile(candidate)
+      if (bundled) {
+        return bundled
+      }
+    }
+
+    return null
   }
 
   private async readLocalCacheIndex() {
@@ -192,21 +211,37 @@ class LichessHumanBook {
 }
 
 function getSourcePath() {
-  return path.resolve(process.cwd(), SOURCE_FILENAME)
+  return path.resolve(projectRoot, SOURCE_FILENAME)
 }
 
-function getBundledIndexPath() {
-  return path.resolve(process.cwd(), HUMAN_BOOK_ARTIFACT_RELATIVE_PATH)
+function getBundledIndexPathCandidates() {
+  return Array.from(
+    new Set([
+      path.resolve(projectRoot, HUMAN_BOOK_ARTIFACT_RELATIVE_PATH),
+      path.resolve(moduleDirectory, 'generated', INDEX_CACHE_FILENAME),
+      path.resolve(moduleDirectory, '..', HUMAN_BOOK_ARTIFACT_RELATIVE_PATH),
+      path.resolve(process.cwd(), HUMAN_BOOK_ARTIFACT_RELATIVE_PATH),
+    ]),
+  )
 }
 
 function getLocalCachePath() {
   return path.resolve(
-    process.cwd(),
+    projectRoot,
     'node_modules',
     '.cache',
     'eliana',
     INDEX_CACHE_FILENAME,
   )
+}
+
+async function sourceFileExists() {
+  try {
+    await stat(getSourcePath())
+    return true
+  } catch {
+    return false
+  }
 }
 
 async function readIndexFile(indexPath: string) {
@@ -504,9 +539,10 @@ export async function buildAndPersistHumanBookArtifact(
   onStateChange: (state: HumanBookLoadState) => void = () => undefined,
 ) {
   const index = await buildHumanBookIndex(onStateChange)
-  await persistIndexFile(getBundledIndexPath(), index)
+  const artifactPath = path.resolve(projectRoot, HUMAN_BOOK_ARTIFACT_RELATIVE_PATH)
+  await persistIndexFile(artifactPath, index)
   return {
-    path: getBundledIndexPath(),
+    path: artifactPath,
     positionCount: Object.keys(index.positions).length,
   }
 }
