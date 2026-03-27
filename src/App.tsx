@@ -480,6 +480,42 @@ function getLineScoreValue(line: ScoreLike) {
   return line.cp
 }
 
+function getHumanRarityDescriptor(maiaProbability: number) {
+  if (maiaProbability < 0.0001) {
+    return 'inexplicable'
+  }
+
+  if (maiaProbability < 0.01) {
+    return 'very strange'
+  }
+
+  if (maiaProbability < 0.05) {
+    return 'strange'
+  }
+
+  return null
+}
+
+function withIndefiniteArticle(phrase: string) {
+  return /^[aeiou]/i.test(phrase) ? `an ${phrase}` : `a ${phrase}`
+}
+
+function describeMistakePhrase(
+  maiaProbability: number,
+  suffix = '',
+) {
+  if (maiaProbability >= 0.16) {
+    return `was an understandable mistake${suffix}`
+  }
+
+  const rarity = getHumanRarityDescriptor(maiaProbability)
+  if (rarity) {
+    return `was ${withIndefiniteArticle(`${rarity} mistake`)}${suffix}`
+  }
+
+  return `was a mistake${suffix}`
+}
+
 function describePlayedMoveVerdict(
   cpLoss: number,
   maiaProbability: number,
@@ -492,8 +528,9 @@ function describePlayedMoveVerdict(
   if (bestScore !== null) {
     if (bestScore >= 900 && playedScore >= 700) {
       if (cpLoss < 50) {
-        if (maiaProbability < 0.03) {
-          return 'was a slightly unusual move'
+        const rarity = getHumanRarityDescriptor(maiaProbability)
+        if (rarity) {
+          return `was ${withIndefiniteArticle(`${rarity} move`)}`
         }
 
         return maiaProbability >= 0.16
@@ -501,8 +538,9 @@ function describePlayedMoveVerdict(
           : 'was very close to best'
       }
 
-      return maiaProbability < 0.03
-        ? 'was an unusual way to keep a won game'
+      const rarity = getHumanRarityDescriptor(maiaProbability)
+      return rarity
+        ? `was ${withIndefiniteArticle(`${rarity} way to keep a won game`)}`
         : cpLoss <= 220
           ? 'was not best but kept a won game'
           : 'missed a cleaner win'
@@ -510,8 +548,9 @@ function describePlayedMoveVerdict(
 
     if (bestScore >= 700 && playedScore >= 350) {
       if (cpLoss < 50) {
-        if (maiaProbability < 0.03) {
-          return 'was a slightly unusual move but kept a winning position'
+        const rarity = getHumanRarityDescriptor(maiaProbability)
+        if (rarity) {
+          return `was ${withIndefiniteArticle(`${rarity} move`)} but kept a winning position`
         }
 
         return maiaProbability >= 0.16
@@ -525,9 +564,10 @@ function describePlayedMoveVerdict(
           : 'was an inaccuracy but kept a winning position'
       }
 
-      return maiaProbability >= 0.16
-        ? 'was an understandable mistake but kept a winning position'
-        : 'was a mistake but kept a winning position'
+      return describeMistakePhrase(
+        maiaProbability,
+        ' but kept a winning position',
+      )
     }
   }
 
@@ -544,52 +584,53 @@ function describePlayedMoveVerdict(
   }
 
   if (cpLoss < 50) {
-    if (maiaProbability < 0.03) {
-      return 'was a slightly unusual move'
+    const rarity = getHumanRarityDescriptor(maiaProbability)
+    if (rarity) {
+      return `was ${withIndefiniteArticle(`${rarity} move`)}`
     }
 
     return maiaProbability >= 0.16 ? 'was a strong, natural move' : 'was very close to best'
   }
 
   if (cpLoss <= 120) {
-    if (maiaProbability < 0.03) {
-      return 'was an unusual inaccuracy'
+    const rarity = getHumanRarityDescriptor(maiaProbability)
+    if (rarity) {
+      return `was ${withIndefiniteArticle(`${rarity} inaccuracy`)}`
     }
 
     return maiaProbability >= 0.14 ? 'was an understandable inaccuracy' : 'was an inaccuracy'
   }
 
   if (cpLoss <= 220) {
-    return maiaProbability >= 0.16
-      ? 'was an understandable mistake'
-      : maiaProbability < 0.05
-        ? 'was a slightly strange mistake'
-        : 'was a mistake'
+    return describeMistakePhrase(maiaProbability)
   }
 
   if (cpLoss <= 320) {
-    return maiaProbability >= 0.16
-      ? 'was a very human blunder'
-      : maiaProbability < 0.05
-        ? 'was a strange blunder'
-        : 'was a blunder'
+    if (maiaProbability >= 0.16) {
+      return 'was a very human blunder'
+    }
+
+    const rarity = getHumanRarityDescriptor(maiaProbability)
+    return rarity ? `was ${withIndefiniteArticle(`${rarity} blunder`)}` : 'was a blunder'
   }
 
   if (cpLoss <= 500) {
-    return maiaProbability >= 0.16
-      ? 'was a costly blunder'
-      : maiaProbability < 0.03
-        ? 'was a very strange blunder'
-        : 'was a serious blunder'
+    if (maiaProbability >= 0.16) {
+      return 'was a costly blunder'
+    }
+
+    const rarity = getHumanRarityDescriptor(maiaProbability)
+    return rarity
+      ? `was ${withIndefiniteArticle(`${rarity} blunder`)}`
+      : 'was a serious blunder'
   }
 
-  if (maiaProbability < 0.02) {
-    return 'was an inexplicable blunder'
+  if (maiaProbability >= 0.16) {
+    return 'was a very costly blunder'
   }
 
-  return maiaProbability >= 0.16
-    ? 'was a very costly blunder'
-    : 'was a serious blunder'
+  const rarity = getHumanRarityDescriptor(maiaProbability)
+  return rarity ? `was ${withIndefiniteArticle(`${rarity} blunder`)}` : 'was a serious blunder'
 }
 
 function describeBestMovePraise(
@@ -1435,7 +1476,7 @@ function App() {
   const [currentNodeId, setCurrentNodeId] = useState(INITIAL_GAME_TREE.rootId)
   const [fenDraft, setFenDraft] = useState(DEFAULT_START_FEN)
   const [pgnDraft, setPgnDraft] = useState('')
-  const [chessComProfileInput, setChessComProfileInput] = useState('')
+  const [chessComProfileInput, setChessComProfileInput] = useState('notnotnotjacob')
   const [chessComGames, setChessComGames] = useState<ChessComRecentGame[]>([])
   const [chessComLoading, setChessComLoading] = useState(false)
   const [fenError, setFenError] = useState<string | null>(null)
