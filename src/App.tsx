@@ -481,7 +481,7 @@ function getLineScoreValue(line: ScoreLike) {
 }
 
 function getHumanRarityDescriptor(maiaProbability: number) {
-  if (maiaProbability < 0.0001) {
+  if (maiaProbability < 0.001) {
     return 'inexplicable'
   }
 
